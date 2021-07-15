@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Remove Stock</title>
+	<link href="css/styles.css" rel="stylesheet" type="text/css">
+    <script src="js/jquery-1.11.3.min.js"></script>
+</head>
+<body>
+  <div id="container">
+  	<h2>Remove Stock</h2>
+  	<div id="statusMsg"></div>
+  	<form method="POST" id="removeStockForm">
+		<label>Select a Product Code</label><br>
+		<select name="code" id="code">
+		    <option value="">-- Select --</option>
+			<option value="PRODUCT01">PRODUCT01</option>
+			<option value="PRODUCT02">PRODUCT02</option>
+			<option value="PRODUCT03">PRODUCT03</option>
+		</select><br>
+		<div id="error_code"></div>
+		<label>Buyer Email Address</label><br>
+		<input type="email" name="email" id="email"><br>
+		<div id="error_email"></div>
+		<label>Items Bought</label><br>
+		<input type="text" name="items" id="items"><br>
+		<div id="error_items"></div>
+		<input type="hidden" name="action" value='removeStock'/>
+		<button type="submit" id="removeButton">Item Shipped</button>
+	</form>
+  </div>
+  <script type="text/javascript">
+	$(document).ready(function (e) {
+    $("#removeStockForm").on('submit', function (e) {
+        e.preventDefault();
+        var code = $("#code").val();
+        var items = $("#items").val();
+        var email = $("#email").val();
+
+        var errors = [];
+       
+        if(code == '')
+        {
+            $('#error_code').html('<div id="error"><small>* Select Product Code.</small></div>');
+            errors.push("Select Product Code.");
+            
+        }
+        if(items == '')
+        {
+            $('#error_items').html('<div id="error"><small>* Enter Items Bought.</small></div>');
+            errors.push("Enter Items Bought.");
+            
+        }else if(isNaN(items)){
+            $('#error_items').html('<div id="error"><small>* Invalid Number.</small></div>');
+            errors.push("Invalid Number.");
+        }else if(items <= 0){
+            $('#error_items').html('<div id="error"><small>* Items can`t be less than 0.</small></div>');
+            errors.push("Invalid Number.");
+        }
+
+        if(email == '')
+        {
+            $('#error_email').html('<div id="error"><small>* Enter Buyer`s Email Address</small></div>');
+            errors.push("Enter Buyer`s Email Address.");
+        }
+
+        
+        if(errors.length == 0)
+        {
+        	$.ajax({
+            type: 'POST',
+            url: 'php_files/data.php',
+            data: new FormData(this),
+            contentType: false,
+            cache: false,
+            processData: false,
+            beforeSend: function () {
+
+                $('#removeButton').attr("disabled", "disabled");
+                $('#removeStockForm').css("opacity", ". 5");
+            },
+            success: function (msg) {
+                $('#statusMsg').html('');
+                
+                if ($.trim(msg) === 'userFound')
+                {
+                    
+                    $('#statusMsg').html('<div id="otherError">You can`t buy product with this email address</div>');
+                } else if($.trim(msg) === 'outOfStock'){
+                	$('#statusMsg').html('<div id="otherError">Out of Stock</div>');
+                }else if($.trim(msg) === 'added'){
+                	$('#removeStockForm')[0].reset();
+                	$('#statusMsg').html('<div id="success">Product has been Shipped</div>');
+                }
+                else
+                {
+                    $('#statusMsg').html('<div id="otherError">Failed To Remove Product !</div>');
+                }
+                $('#removeStockForm').css("opacity", " ");
+                $('#removeButton').removeAttr("disabled");
+            }
+        });
+        
+        }
+    }); 
+});
+</script>
+</body>
+</html>

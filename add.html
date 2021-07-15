@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Add Stock</title>
+	<link href="css/styles.css" rel="stylesheet" type="text/css">
+    <script src="js/jquery-1.11.3.min.js"></script>
+</head>
+<body>
+<div id="container">
+	<h2>Add Stock</h2>
+	<div id="statusMsg"></div>
+	<form method="POST" id="addStockForm">
+		<label>Select a Product Code</label><br>
+		<select name="code" id="code">
+		    <option value="">-- Select --</option>
+			<option value="PRODUCT01">PRODUCT01</option>
+			<option value="PRODUCT02">PRODUCT02</option>
+			<option value="PRODUCT03">PRODUCT03</option>
+		</select><br>
+		<div id="error_code"></div>
+		<label>Items Received</label><br>
+		<input type="text" name="items" id="items"><br>
+		<div id="error_items"></div>
+		<label>Price per Item Received</label><br>
+		<input type="text" name="price" id="price"><br>
+		<div id="error_price"></div>
+		<input type="hidden" name="action" value='addStock'/>
+		<button type="submit" id="addButton">Add Stock</button>
+	</form>
+</div>
+<script type="text/javascript">
+	$(document).ready(function (e) {
+    $("#addStockForm").on('submit', function (e) {
+        e.preventDefault();
+        var code = $("#code").val();
+        var items = $("#items").val();
+        var price = $("#price").val();
+
+        var errors = [];
+       
+
+        if(code == '')
+        {
+            $('#error_code').html('<div id="error"><small>* Select Product Code.</small></div>');
+            errors.push("Select Product Code");
+            
+        }
+
+        if(items == '')
+        {
+            $('#error_items').html('<div id="error"><small>* Enter Items Received.</small></div>');
+            errors.push("Select Product Code");
+            
+        }else if(isNaN(items)){
+            $('#error_items').html('<div id="error"><small>* Invalid Number.</small></div>');
+            errors.push("Invalid Number.");
+        }else if(items <= 0){
+            $('#error_items').html('<div id="error"><small>* Items can`t be less than 0.</small></div>');
+            errors.push("Invalid Number.");
+        }
+      
+        
+
+        if(price == '')
+        {
+            $('#error_price').html('<div id="error"><small>* Enter Price per Item Received</small></div>');
+            errors.push("Enter Price per Item Received");
+        }else if(isNaN(price)){
+        	$('#error_price').html('<div id="error"><small>* Invalid price.</small></div>');
+            errors.push("Invalid Price.");
+        }
+
+        if(errors.length == 0)
+        {
+        	$.ajax({
+            type: 'POST',
+            url: 'php_files/data.php',
+            data: new FormData(this),
+            contentType: false,
+            cache: false,
+            processData: false,
+            beforeSend: function () {
+
+                $('#addButton').attr("disabled", "disabled");
+                $('#addStockForm').css("opacity", ". 5");
+            },
+            success: function (msg) {
+                $('#statusMsg').html('');
+                
+                if ($.trim(msg) === 'ok')
+                {
+                    $('#addStockForm')[0].reset();
+                    $('#statusMsg').html('<div id="success">Product Has Been Added.</div>');
+                }
+                else
+                {
+                    $('#statusMsg').html('<div id="otherError">Failed to add product !</div>');
+                }
+                $('#addStockForm').css("opacity", " ");
+                $('#addButton').removeAttr("disabled");
+            }
+        });
+        
+        }
+    }); 
+});
+</script>
+</body>
+</html>
